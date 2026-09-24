@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Sandbox — Browser IDE</title>
+    <link rel="icon" href="resources/logo.ico">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.28.2/full/pyodide.js"></script>
+</head>
+<body>
+<div class="app-shell">
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark"><img src="resources/logo.jpg" alt=""></div>
+            <div>
+                <div class="brand-name">Code Sandbox</div>
+                <div class="brand-sub">browser IDE</div>
+            </div>
+        </div>
+
+        <div class="topbar-center">
+            <span class="status-dot" id="runtime-dot"></span>
+            <span id="runtime-status">Python runtime loading…</span>
+        </div>
+
+        <div class="top-actions">
+            <button class="icon-button" onclick="openBgModal()" title="Appearance">◐</button>
+            <button class="ghost-button" onclick="downloadCurrentFile()">↓ Save</button>
+        </div>
+    </header>
+
+    <main class="workspace">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-title">
+                <span>EXPLORER</span>
+                <button onclick="addNewFile()" title="New file">+</button>
+            </div>
+            <div id="file-list"></div>
+
+            <div class="sidebar-bottom">
+                <div class="mini-card">
+                    <span class="mini-label">RUNTIME</span>
+                    <strong id="side-runtime">Python</strong>
+                    <small id="side-runtime-detail">Made By Jake</small>
+                </div>
+            </div>
+            <div class="resize-handle" id="sidebar-resize" title="Drag to resize sidebar"></div>
+        </aside>
+
+        <section class="main-area">
+            <div class="language-row">
+                <div class="language-tabs">
+                    <button class="lang-tab active" data-lang="python" onclick="selectLanguage('python')">Python</button>
+                    <button class="lang-tab" data-lang="cpp" onclick="selectLanguage('cpp')">C++</button>
+                    <button class="lang-tab disabled">JavaScript <small>soon</small></button>
+                    <button class="lang-tab disabled">Rust <small>soon</small></button>
+                </div>
+                <div class="shortcut-hint"><kbd>Ctrl</kbd><span>+</span><kbd>Enter</kbd> Run</div>
+            </div>
+
+            <div class="editor-card">
+                <div class="editor-top">
+                    <div class="tab">
+                        <span class="file-icon">●</span>
+                        <span id="active-file-name">main.py</span>
+                        <span class="unsaved" id="unsaved">*</span>
+                    </div>
+                    <div class="editor-tools">
+                        <button onclick="formatHint()">Format</button>
+                        <button onclick="clearEditor()">Clear</button>
+                    </div>
+                </div>
+
+                <div class="editor-wrapper">
+                    <textarea id="code-editor"></textarea>
+                </div>
+
+                <div class="runbar">
+                    <button class="run-button" id="run-button" onclick="runCode()">
+                        <span>▶</span> Run
+                    </button>
+                    <button class="stop-button" id="stop-button" onclick="stopCode()">■ Stop</button>
+                    <button class="compile-button" onclick="compileCode()">Compile & Download</button>
+                    <span class="run-message" id="run-message">Ready</span>
+                </div>
+            </div>
+
+            <div class="resize-handle horizontal" id="terminal-resize" title="Drag to resize terminal"></div>
+
+            <div class="terminal-card" id="terminal-card">
+                <div class="terminal-header">
+                    <div class="terminal-title">
+                        <span class="terminal-icon">›_</span>
+                        <strong>Terminal</strong>
+                        <span class="terminal-badge" id="terminal-badge">READY</span>
+                    </div>
+                    <div class="terminal-actions">
+                        <button onclick="clearTerminal()">Clear</button>
+                    </div>
+                </div>
+                <div class="terminal-output" id="terminal-output">
+                    <div class="terminal-welcome">
+                        <span class="prompt">›</span>
+                        <span>Welcome to Code Sandbox.</span>
+                        <span class="muted">Write Python and hit Run.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="lumen-panel" id="lumen-panel">
+            <div class="lumen-toggle" id="lumen-toggle" onclick="toggleLumen()">
+                <span id="lumen-arrow">◀</span>
+            </div>
+            <div class="lumen-content" id="lumen-content">
+                <div class="lumen-header">
+                    <strong>Lumen IDE</strong>
+                </div>
+                <div class="lumen-body">
+                    <div class="lumen-input-group">
+                        <label for="lumen-api-key">Enter your API key</label>
+                        <input type="password" id="lumen-api-key" placeholder="Your Lumen AI API key">
+                        <button onclick="saveLumenApiKey()">Save & Connect</button>
+                    </div>
+                    <div class="lumen-status" id="lumen-status"></div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</div>
+
+<div class="modal" id="bg-modal">
+    <div class="modal-panel">
+        <div class="modal-head">
+            <div><span class="eyebrow">APPEARANCE</span><h2>Make it yours.</h2></div>
+            <button class="modal-close" onclick="closeBgModal()">×</button>
+        </div>
+        <div class="theme-grid">
+            <button class="theme-choice dark" onclick="setBackground('dark')"><span></span>Obsidian</button>
+            <button class="theme-choice black" onclick="setBackground('black')"><span></span>Black</button>
+            <button class="theme-choice blue" onclick="setBackground('blue')"><span></span>Midnight</button>
+            <button class="theme-choice purple" onclick="setBackground('purple')"><span></span>Violet</button>
+            <button class="theme-choice light" onclick="setBackground('light')"><span></span>Light</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="welcome-modal">
+    <div class="modal-panel welcome-panel">
+        <div class="modal-head">
+            <div><span class="eyebrow">WELCOME</span><h2>Welcome to Jakes Sandbox</h2></div>
+            <button class="modal-close" onclick="closeWelcomeModal()">×</button>
+        </div>
+        <div class="welcome-content">
+            <p>If you want to support this project you can do so by using the API keys on <a href="https://lumen.baby" target="_blank" class="lumen-link">Lumen AI</a></p>
+        </div>
+        <div class="welcome-actions">
+            <button class="primary-button" onclick="closeWelcomeModal()">Get Started</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/clike/clike.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
